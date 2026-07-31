@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 
 const AuthContext = createContext();
 
@@ -7,7 +8,7 @@ const MOCK_DEFAULT_USER = {
   email: 'sari.dewi@terataihati.id',
   full_name: 'Sari Dewi',
   avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
-  plan_tier: 'pro', // 'free' | 'pro' | 'lifetime'
+  plan_tier: 'pro',
   streak_count: 12,
   longest_streak: 18,
   daily_reminder_enabled: true,
@@ -23,7 +24,7 @@ export function AuthProvider({ children }) {
 
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     const saved = localStorage.getItem('teratai_auth_state');
-    return saved !== null ? JSON.parse(saved) : true; // Default logged in as demo user for instant testability
+    return saved !== null ? JSON.parse(saved) : true;
   });
 
   useEffect(() => {
@@ -33,6 +34,52 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     localStorage.setItem('teratai_auth_state', JSON.stringify(isAuthenticated));
   }, [isAuthenticated]);
+
+  // Supabase Auth Listener for Google OAuth callback & session state
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    // Fetch initial session or OAuth redirect callback
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) console.error('Supabase session fetch error:', error);
+      if (session?.user) {
+        const u = session.user;
+        const profile = {
+          id: u.id,
+          email: u.email,
+          full_name: u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || 'Sahabat Teratai',
+          avatar_url: u.user_metadata?.avatar_url || u.user_metadata?.picture || MOCK_DEFAULT_USER.avatar_url,
+          plan_tier: 'pro',
+          streak_count: 12,
+          longest_streak: 18
+        };
+        setUser(profile);
+        setIsAuthenticated(true);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Supabase Auth State Event:', event, session);
+      if (session?.user) {
+        const u = session.user;
+        const profile = {
+          id: u.id,
+          email: u.email,
+          full_name: u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || 'Sahabat Teratai',
+          avatar_url: u.user_metadata?.avatar_url || u.user_metadata?.picture || MOCK_DEFAULT_USER.avatar_url,
+          plan_tier: 'pro',
+          streak_count: 12,
+          longest_streak: 18
+        };
+        setUser(profile);
+        setIsAuthenticated(true);
+      } else if (event === 'SIGNED_OUT') {
+        setIsAuthenticated(false);
+      }
+    });
+
+    return () => subscription?.unsubscribe();
+  }, []);
 
   const login = (email, password) => {
     const nameFromEmail = email ? email.split('@')[0] : 'Sahabat Teratai';
@@ -45,6 +92,32 @@ export function AuthProvider({ children }) {
     setUser(updatedUser);
     setIsAuthenticated(true);
     return { success: true };
+  };
+
+  const loginWithGoogle = async () => {
+    try {
+      const redirectUrl = window.location.origin;
+      console.log('Initiating Google OAuth to redirect:', redirectUrl);
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+      return data;
+    } catch (err) {
+      console.error('Google OAuth Login error:', err);
+      throw err;
+    }
   };
 
   const register = (fullName, email, password) => {
@@ -62,7 +135,10 @@ export function AuthProvider({ children }) {
     return { success: true };
   };
 
-  const logout = () => {
+  const logout = async () => {
+    if (isSupabaseConfigured) {
+      await supabase.auth.signOut();
+    }
     setIsAuthenticated(false);
   };
 
@@ -81,6 +157,7 @@ export function AuthProvider({ children }) {
       user,
       isAuthenticated,
       login,
+      loginWithGoogle,
       register,
       logout,
       setPlanTier,
