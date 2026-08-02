@@ -5,12 +5,21 @@ import {
   Home, Heart, MessageSquare, BookOpen, BarChart3, Wind, Trophy, Settings, LogOut, Flame, Sparkles 
 } from 'lucide-react';
 
-export default function Sidebar({ currentTab, onSelectTab, onNavigateLanding }) {
+export default function Sidebar({ currentTab, onSelectTab, onNavigateLanding, onLogout }) {
   const { user, logout } = useAuth();
   const { checkins } = useApp();
 
   // Calculate streak count
   const streakCount = user?.streak_count || checkins.length || 0;
+
+  const handleLogoutClick = async () => {
+    await logout();
+    if (onLogout) {
+      onLogout();
+    } else if (onNavigateLanding) {
+      onNavigateLanding();
+    }
+  };
 
   const menuItems = [
     { id: 'home', label: 'Beranda', icon: Home },
@@ -107,8 +116,8 @@ export default function Sidebar({ currentTab, onSelectTab, onNavigateLanding }) 
           </div>
 
           <button
-            onClick={logout}
-            title="Keluar"
+            onClick={handleLogoutClick}
+            title="Keluar dari Akun"
             className="p-2 text-stoneText-muted hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-colors"
           >
             <LogOut size={16} />
