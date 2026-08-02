@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Home, Heart, MessageSquare, BookOpen, BarChart3, Wind, Trophy, Settings, 
   Sparkles, Flame, Check, ArrowRight, Play, Pause, Search, Plus, Calendar, 
-  TrendingUp, ShieldAlert, Share2, Smile, Lock
+  TrendingUp, ShieldAlert, Share2, Smile, Lock, LogOut
 } from 'lucide-react';
 
 export default function InteractiveDashboardPreview({ onNavigate }) {
@@ -154,18 +154,27 @@ export default function InteractiveDashboardPreview({ onNavigate }) {
                 <span className="text-[9px] bg-amber-200 px-1 py-0.2 rounded-full">🔥 Top 5%</span>
               </div>
 
-              <div className="flex items-center gap-2 px-2 text-left">
-                <img 
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150" 
-                  alt="Sari Dewi"
-                  className="w-7 h-7 rounded-full border border-brand-200 object-cover"
-                />
-                <div className="overflow-hidden">
-                  <p className="text-xs font-bold text-stoneText truncate">Sari Dewi</p>
-                  <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-brand-100 text-brand-700 font-semibold inline-block capitalize">
-                    {planTier} Member ✨
-                  </span>
+              <div className="flex items-center justify-between px-2 text-left">
+                <div className="flex items-center gap-2 overflow-hidden">
+                  <img 
+                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150" 
+                    alt="Sari Dewi"
+                    className="w-7 h-7 rounded-full border border-brand-200 object-cover shrink-0"
+                  />
+                  <div className="overflow-hidden">
+                    <p className="text-xs font-bold text-stoneText truncate">Sari Dewi</p>
+                    <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-brand-100 text-brand-700 font-semibold inline-block capitalize">
+                      {planTier} Member ✨
+                    </span>
+                  </div>
                 </div>
+                <button
+                  onClick={() => onNavigate && onNavigate('landing')}
+                  title="Keluar dari Aplikasi"
+                  className="p-1.5 text-stoneText-muted hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-colors"
+                >
+                  <LogOut size={16} />
+                </button>
               </div>
             </div>
           </div>
