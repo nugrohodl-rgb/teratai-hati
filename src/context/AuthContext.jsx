@@ -96,7 +96,11 @@ export function AuthProvider({ children }) {
 
   const loginWithGoogle = async () => {
     try {
-      const redirectUrl = window.location.origin;
+      const currentHost = window.location.hostname;
+      const redirectUrl = (currentHost === 'localhost' || currentHost === '127.0.0.1')
+        ? window.location.origin
+        : 'https://teratai-hati.vercel.app';
+
       console.log('Initiating Google OAuth to redirect:', redirectUrl);
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
