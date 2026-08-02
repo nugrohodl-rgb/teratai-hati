@@ -18,8 +18,27 @@ import SettingsPage from './pages/dashboard/SettingsPage';
 
 function AppContent() {
   const { isAuthenticated, logout } = useAuth();
-  const [currentView, setCurrentView] = useState('landing'); // 'landing' | 'login' | 'register' | 'dashboard'
-  const [dashboardTab, setDashboardTab] = useState('home'); // 'home' | 'checkin' | 'companion' | 'journal' | 'analytics' | 'wellness' | 'achievements' | 'settings'
+  
+  // Detect if URL contains OAuth redirect callback parameters
+  const [currentView, setCurrentView] = useState(() => {
+    const hasOAuthParams = window.location.hash.includes('access_token') || 
+                           window.location.search.includes('code') || 
+                           window.location.hash.includes('type=recovery');
+    return hasOAuthParams ? 'dashboard' : 'landing';
+  });
+  
+  const [dashboardTab, setDashboardTab] = useState('home');
+
+  // Automatically direct user to dashboard whenever authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Clean OAuth hash params from address bar for clean UX
+      if (window.location.hash.includes('access_token') || window.location.search.includes('code')) {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+      setCurrentView('dashboard');
+    }
+  }, [isAuthenticated]);
 
   const handleNavigate = (view) => {
     setCurrentView(view);
@@ -38,7 +57,7 @@ function AppContent() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Render view logic
+  // View routing logic
   if (currentView === 'login') {
     return <LoginPage onNavigate={handleNavigate} />;
   }
@@ -47,7 +66,7 @@ function AppContent() {
     return <RegisterPage onNavigate={handleNavigate} />;
   }
 
-  if (currentView === 'dashboard') {
+  if (currentView === 'dashboard' || isAuthenticated) {
     return (
       <DashboardLayout
         currentTab={dashboardTab}
