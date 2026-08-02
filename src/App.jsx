@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
 
@@ -17,7 +17,7 @@ import AchievementsPage from './pages/dashboard/AchievementsPage';
 import SettingsPage from './pages/dashboard/SettingsPage';
 
 function AppContent() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const [currentView, setCurrentView] = useState('landing'); // 'landing' | 'login' | 'register' | 'dashboard'
   const [dashboardTab, setDashboardTab] = useState('home'); // 'home' | 'checkin' | 'companion' | 'journal' | 'analytics' | 'wellness' | 'achievements' | 'settings'
 
@@ -32,7 +32,13 @@ function AppContent() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Render view
+  const handleLogout = async () => {
+    await logout();
+    setCurrentView('landing');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Render view logic
   if (currentView === 'login') {
     return <LoginPage onNavigate={handleNavigate} />;
   }
@@ -41,12 +47,13 @@ function AppContent() {
     return <RegisterPage onNavigate={handleNavigate} />;
   }
 
-  if (currentView === 'dashboard' || (isAuthenticated && currentView !== 'landing')) {
+  if (currentView === 'dashboard') {
     return (
       <DashboardLayout
         currentTab={dashboardTab}
         onSelectTab={handleSelectTab}
         onNavigateLanding={() => handleNavigate('landing')}
+        onLogout={handleLogout}
       >
         {dashboardTab === 'home' && <DashboardHome onSelectTab={handleSelectTab} />}
         {dashboardTab === 'checkin' && <CheckInPage onSelectTab={handleSelectTab} />}
