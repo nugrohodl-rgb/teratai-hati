@@ -3,10 +3,19 @@ import Sidebar from '../components/Sidebar';
 import MobileNav from '../components/MobileNav';
 import BadgeNotificationModal from '../components/BadgeNotificationModal';
 import { useAuth } from '../context/AuthContext';
-import { Flame, Sparkles } from 'lucide-react';
+import { Flame, LogOut } from 'lucide-react';
 
-export default function DashboardLayout({ currentTab, onSelectTab, onNavigateLanding, children }) {
-  const { user } = useAuth();
+export default function DashboardLayout({ currentTab, onSelectTab, onNavigateLanding, onLogout, children }) {
+  const { user, logout } = useAuth();
+
+  const handleLogoutClick = async () => {
+    await logout();
+    if (onLogout) {
+      onLogout();
+    } else if (onNavigateLanding) {
+      onNavigateLanding();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-surface flex flex-col md:flex-row font-sans text-stoneText antialiased">
@@ -18,6 +27,7 @@ export default function DashboardLayout({ currentTab, onSelectTab, onNavigateLan
         currentTab={currentTab} 
         onSelectTab={onSelectTab} 
         onNavigateLanding={onNavigateLanding} 
+        onLogout={handleLogoutClick}
       />
 
       {/* Main Content Area */}
@@ -40,12 +50,13 @@ export default function DashboardLayout({ currentTab, onSelectTab, onNavigateLan
               <Flame size={14} className="text-amber-500 fill-amber-500" />
               <span>{user?.streak_count || 12}d</span>
             </div>
-            <img 
-              src={user?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"}
-              alt="Profile"
-              className="w-8 h-8 rounded-full border border-brand-300 object-cover"
-              onClick={() => onSelectTab('settings')}
-            />
+            <button
+              onClick={handleLogoutClick}
+              title="Keluar dari Akun"
+              className="p-1.5 text-stoneText-muted hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-colors"
+            >
+              <LogOut size={18} />
+            </button>
           </div>
         </header>
 
