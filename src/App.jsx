@@ -29,7 +29,7 @@ function AppContent() {
   
   const [dashboardTab, setDashboardTab] = useState('home');
 
-  // Automatically direct user to dashboard whenever authenticated
+  // Automatically direct user to dashboard AFTER logging in (when isAuthenticated becomes true)
   useEffect(() => {
     if (isAuthenticated) {
       // Clean OAuth hash params from address bar for clean UX
@@ -66,7 +66,7 @@ function AppContent() {
     return <RegisterPage onNavigate={handleNavigate} />;
   }
 
-  if (currentView === 'dashboard' || isAuthenticated) {
+  if (currentView === 'dashboard' && isAuthenticated) {
     return (
       <DashboardLayout
         currentTab={dashboardTab}
